@@ -1,20 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syst/wait.h>
+//#include <syst/wait.h>
 #include <unistd.h>
 
 typedef struct {
 
 	char* progname;
 	int redirect[2];
+	char* args[];
 
 }cmd;
 
 typedef struct {
 
-	int cmdcount;
-	cmd* cmds[]
+	int commandCount;
+	cmd* commands[];
 
-} pipeline;
+}pipeline;
 
+cmd* parseCommand(char * str);
+
+pipeline* parsePipeline(char * str);
+ssize_t promptInput(const char* prompt, char** line, size_t* len);
+void freePipeline(int numberOfPipes, int(*pipes)[2]);
+int execWrapper(cmd* command, int numberOfPipes, int (*pipes)[2]);
+pid_t runRedirect(cmd* command, int numberOfPipes, int (*pipes)[2]);
