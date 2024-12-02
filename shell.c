@@ -20,8 +20,32 @@ int main(int argc, char** argv){
             pipeline->commands[i]->redirect[STDIN_FILENO] = pipes[i-1][0];
             pipeline->commands[i]->redirect[STDOUT_FILENO] = pipes[i-1][1];
         }
+<<<<<<< Updated upstream
         for(int i = 0; i < numberOfPipes; ++i) {
             runRedirect(pipeline -> commands[i], numberOfPipes, pipes);
+=======
+        for(int i = 0; i < numberOfPipes; i++) {
+            cmd* command = pipeline->commands[i];
+            int builtin_status = sh_execute(command->args);
+            if (builtin_status == 0) {
+                // Exit shell.
+                free(line);
+                freePipeline(numberOfPipes, pipes);
+                return 0;
+            }
+            else if (builtin_status == 1) {
+                // Built-in command handled, continue to next command.
+                continue;
+            }       
+            else if (builtin_status == 1) {
+                // Blank command was entered
+                continue;
+            }
+            else {
+                // Not a built-in command. execute as usual
+                runRedirect(pipeline -> commands[i], numberOfPipes, pipes);
+            }  
+>>>>>>> Stashed changes
         }
         freePipeline(numberOfPipes, pipes);
 
