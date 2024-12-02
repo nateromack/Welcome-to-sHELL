@@ -15,17 +15,17 @@ int main(int argc, char** argv){
         pipeline*  pipeline = parsePipeline(line);
         int numberOfPipes = pipeline->commandCount;
         int(*pipes)[2] = calloc (sizeof(int[2]), numberOfPipes);
-        for(int i = 1; i < numberOfPipes; i++) {
+        for(int i = 1; i < numberOfPipes; ++i) {
             pipe(pipes[i-1]);
             pipeline->commands[i]->redirect[STDIN_FILENO] = pipes[i-1][0];
             pipeline->commands[i]->redirect[STDOUT_FILENO] = pipes[i-1][1];
         }
-        for(int i = 0; i < numberOfPipes; i++) {
+        for(int i = 0; i < numberOfPipes; ++i) {
             runRedirect(pipeline -> commands[i], numberOfPipes, pipes);
         }
         freePipeline(numberOfPipes, pipes);
 
-        for(int i = 0; i < numberOfPipes; i++) {
+        for(int i = 0; i < numberOfPipes; ++i) {
             wait(NULL);
         }
         fputs("\n",stderr);
@@ -39,7 +39,7 @@ ssize_t promptInput(const char* prompt, char** line, size_t* len) {
     }
 
     void freePipeline(int numberOfPipes, int(*pipes)[2]){
-        for (int i; i < numberOfPipes; i++) {
+        for (int i; i < numberOfPipes; ++i) {
             close(pipes[i][0]);
             close(pipes[i][1]);
         }

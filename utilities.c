@@ -4,7 +4,7 @@
 
 char* nextToken(char**line){
     char * token;
-    while((token=strsep(line," \t\n\r")&&!*token));
+    while((token=strsep(line," \t\n\r"))&&!*token);
     return token;
 }
 
@@ -14,7 +14,7 @@ cmd* parseCommand(char * str){
     int i=0;
     cmd* ret = calloc(sizeof(cmd) + 1024 * sizeof(char), 1);
 
-    while(((token = nextToken(&copy)))){
+    while((token = nextToken(&copy))){
         ret->args[i++] = token;
     }
     ret->progname = ret->args[0];
@@ -33,10 +33,11 @@ pipeline* parsePipeline(char * str){
             numberCommands++;
         }
     }
+    numberCommands++;
     ret = calloc(sizeof(pipeline) + numberCommands * sizeof(cmd), 1);
     ret->commandCount = numberCommands;
 
-    while(token = strsep(&copy, "|")){
+    while((token = strsep(&copy, "|"))){
         ret->commands[i++] = parseCommand(token);
     }
     return ret;
