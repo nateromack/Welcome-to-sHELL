@@ -26,3 +26,15 @@ ssize_t promptInput(const char* prompt, char** line, size_t* len);
 void freePipeline(int numberOfPipes, int(*pipes)[2]);
 int execWrapper(cmd* command, int numberOfPipes, int (*pipes)[2]);
 pid_t runRedirect(cmd* command, int numberOfPipes, int (*pipes)[2]);
+/*
+  Function Declarations for builtin shell commands:
+ */
+int sh_cd(char **args);
+int sh_help(char **args);
+int sh_exit(char **args);
+int sh_num_builtins();
+/*
+  Builtin data
+ */
+extern char *builtin_str[];
+extern int (*builtin_func[]) (char **);
