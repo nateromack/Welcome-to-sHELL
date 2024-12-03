@@ -56,6 +56,12 @@ int execWrapper(cmd* command, int numberOfPipes, int (*pipes)[2]) {
     return execvp(command->progname, command->args);
 }
 pid_t runRedirect(cmd* command, int numberOfPipes, int (*pipes)[2]) {
+    for (int i = 0; i < sh_num_builtins(); i++) {
+       if (strcmp(command->progname, builtin_str[i]) == 0) {
+         return (*builtin_func[i])(command->args);
+         return 0;
+       }
+    }
     pid_t child = fork();
     if(child){
         switch(child){
