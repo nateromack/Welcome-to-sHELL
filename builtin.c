@@ -20,10 +20,10 @@ int sh_num_builtins() {
 
 int sh_cd(char **args)
 {
-  if (args[0] == NULL) {
+  if (args[1] == NULL) {
     fprintf(stderr, "sh: expected argument to \"cd\"\n");
   } else {
-    if (chdir(args[0]) != 0) {
+    if (chdir(args[1]) != 0) {
       perror("lsh");
     }
   }
