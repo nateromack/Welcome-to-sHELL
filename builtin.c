@@ -46,4 +46,5 @@ int sh_help(char **args)
 int sh_exit(char **args)
 {
   exit(0);
+  return(0);
 }

@@ -10,6 +10,7 @@ int main(int argc, char** argv){
 
     char * line = NULL;
     size_t len = 0;
+    char outputBuffer[4096];
 
     while(promptInput("Shell> ", &line, &len) > 0) {
         pipeline*  pipeline = parsePipeline(line);
@@ -21,7 +22,8 @@ int main(int argc, char** argv){
             pipeline->commands[i]->redirect[STDOUT_FILENO] = pipes[i-1][1];
         }
         for(int i = 0; i < numberOfPipes; ++i) {
-            runRedirect(pipeline -> commands[i], numberOfPipes, pipes);
+            runRedirect(pipeline -> commands[i], numberOfPipes, pipes, outputBuffer, sizeof(outputBuffer));
+            printf("Captured Output: %s\n", outputBuffer);
         }
         freePipeline(numberOfPipes, pipes);
 
@@ -44,24 +46,36 @@ ssize_t promptInput(const char* prompt, char** line, size_t* len) {
             close(pipes[i][1]);
         }
     }
-int execWrapper(cmd* command, int numberOfPipes, int (*pipes)[2]) {
+int execWrapper(cmd* command, int numberOfPipes, int (*pipes)[2], int write_fd) {
     int fd = -1;
     if (command->redirect[0] != -1) {
-        dup2(fd,STDIN_FILENO);
+        dup2(command->redirect[0],STDIN_FILENO);
     }
     if (command->redirect[1] != -1) {
-        dup2(fd, STDOUT_FILENO);
+        dup2(command->redirect[1], STDOUT_FILENO);
+    }
+    else if (write_fd != -1) {
+        dup2(write_fd, STDOUT_FILENO); // Redirect stdout to the write end of the new pipe }
     }
     freePipeline(numberOfPipes, pipes);
     return execvp(command->progname, command->args);
 }
-pid_t runRedirect(cmd* command, int numberOfPipes, int (*pipes)[2]) {
+pid_t runRedirect(cmd* command, int numberOfPipes, int (*pipes)[2], char* outputBuffer, size_t bufferSize) {
     for (int i = 0; i < sh_num_builtins(); i++) {
        if (strcmp(command->progname, builtin_str[i]) == 0) {
          return (*builtin_func[i])(command->args);
          return 0;
        }
     }
+
+    int capturePipe[2];
+    if (pipe(capturePipe) == -1) {
+        perror("pipe");
+        exit(1);
+    }
+
+
+    
     pid_t child = fork();
     if(child){
         switch(child){
@@ -69,10 +83,20 @@ pid_t runRedirect(cmd* command, int numberOfPipes, int (*pipes)[2]) {
                 fprintf(stderr,"Child");
                 return -1;
             default:
+                //Parent process: Read from the pip
+                close(capturePipe[1]); Close the write end in the parent
+                ssize_t bytesRead = read(capturePipe[0], outputBuffer,bufferSize - 1);
+                if (bytesRead >= 0) {
+                    outputBuffer[bytesRead] = '\0'; //Null-terminate the string
+                } else {
+                    perror("read");
+                }
+                close(capturePipe[0]);
                 return child;
         }
         }else{
-            execWrapper(command,numberOfPipes, pipes);
+            close(capturePipe[0]); //close the read end in the child
+            execWrapper(command, numberOfPipes, pipes, capturePipe[1]);
             perror("Problem with command");
             return 0;
         }
